@@ -1,6 +1,26 @@
-import {Entity, model, property} from '@loopback/repository';
+import {belongsTo, Entity, hasMany, model, property} from '@loopback/repository';
+import {Ciudades} from './ciudades.model';
+import {RolesUsuario} from './roles-usuario.model';
+import {SolicitudesEstudio} from './solicitudes-estudio.model';
 
-@model()
+@model({
+  settings: {
+    foreignKeys: {
+      fk_rolUsuario_id: {
+        name: 'fk_rolUsuario_id',
+        entity: 'RolesUsuario',
+        entityKey: 'id',
+        foreignKey: 'rolUsuarioId',
+      },
+      fk_ciudad_id: {
+        name: 'fk_ciudad_usuario_id',
+        entity: 'Ciudades',
+        entityKey: 'id',
+        foreignKey: 'ciudadId',
+      }
+    },
+  },
+})
 export class Usuarios extends Entity {
   @property({
     type: 'string',
@@ -45,6 +65,14 @@ export class Usuarios extends Entity {
   })
   contrasena: string;
 
+  @belongsTo(() => RolesUsuario, {name: 'usuario_rolUsuario'})
+  rolUsuarioId: string;
+
+  @belongsTo(() => Ciudades, {name: 'usuario_ciudad'})
+  ciudadId: string;
+
+  @hasMany(() => SolicitudesEstudio, {keyTo: 'usuarioId'})
+  usuario_solicitudesEstudio: SolicitudesEstudio[];
 
   constructor(data?: Partial<Usuarios>) {
     super(data);

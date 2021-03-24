@@ -1,6 +1,17 @@
 import {Entity, model, property} from '@loopback/repository';
 
-@model()
+@model({
+  settings: {
+    foreignKeys: {
+      fk_cliente_id: {
+        name: 'fk_cliente_id',
+        entity: 'Clientes',
+        entityKey: 'id',
+        foreignKey: 'clienteId',
+      },
+    },
+  },
+})
 export class InfosFinanciera extends Entity {
   @property({
     type: 'string',
@@ -51,6 +62,10 @@ export class InfosFinanciera extends Entity {
   })
   telefono_ref_personal: string;
 
+  @property({
+    type: 'string',
+  })
+  clienteId?: string;
 
   constructor(data?: Partial<InfosFinanciera>) {
     super(data);
