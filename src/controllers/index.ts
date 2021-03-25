@@ -24,3 +24,4 @@ export * from './solicitudes-estudio-estados.controller';
 export * from './usuarios-solicitudes-estudio.controller';
 export * from './solicitudes-estudio-usuarios.controller';
 export * from './clientes-infos-financiera.controller';
+export * from './usuario.controller';
