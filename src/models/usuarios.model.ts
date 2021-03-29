@@ -60,10 +60,9 @@ export class Usuarios extends Entity {
   telefono_celular: string;
 
   @property({
-    type: 'string',
-    required: true,
+    type: 'string'
   })
-  contrasena: string;
+  contrasena?: string;
 
   @belongsTo(() => RolesUsuario, {name: 'usuario_rolUsuario'})
   rolUsuarioId: string;
