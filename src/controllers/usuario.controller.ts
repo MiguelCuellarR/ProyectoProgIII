@@ -22,16 +22,19 @@ import {
   requestBody,
   response
 } from '@loopback/rest';
+import {keys as llaves} from '../config/keys';
 import {Usuarios} from '../models';
 import {UsuariosRepository} from '../repositories';
-import {FuncionesGeneralesService} from '../services';
+import {FuncionesGeneralesService, NotificacionesService} from '../services';
 
 export class UsuarioController {
   constructor(
     @repository(UsuariosRepository)
     public usuariosRepository: UsuariosRepository,
     @service(FuncionesGeneralesService)
-    public servicioFunciones: FuncionesGeneralesService
+    public servicioFunciones: FuncionesGeneralesService,
+    @service(NotificacionesService)
+    public servicionNotificaciones: NotificacionesService
   ) { }
 
   @post('/usuarios')
@@ -57,7 +60,24 @@ export class UsuarioController {
     let claveCifrada = this.servicioFunciones.CifrarTexto(claveAleatoria);
 
     usuarios.contrasena = claveCifrada;
-    return this.usuariosRepository.create(usuarios);
+    let usuarioCreado = await this.usuariosRepository.create(usuarios);
+
+    //notificacion via email
+    if (usuarioCreado) {
+      let contenido = `Hola buen dìa<br/> usted se ha reportado en nuestra plataforma, sus npmnciales, son: <br/>
+      <ul>
+      <li>Usuario: ${usuarioCreado.nombres}<li/>
+      <li>Contraseña: ${claveAleatoria}<li/>
+      <ul/>
+      Gracias por Confiar en nuestra plataforma.
+      `
+      this.servicionNotificaciones.EnviarCorreoElectronico(usuarioCreado.correo_electronico, llaves.asuntoNuevoUsuario, contenido);
+    }
+
+
+    return usuarioCreado;
+
+
   }
 
   @get('/usuarios/count')
