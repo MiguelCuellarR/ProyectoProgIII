@@ -76,11 +76,7 @@ export class UsuarioController {
       `
       this.servicionNotificaciones.EnviarCorreoElectronico(usuarioCreado.correo_electronico, llaves.asuntoNuevoUsuario, contenido);
     }
-
-
     return usuarioCreado;
-
-
   }
 
 
