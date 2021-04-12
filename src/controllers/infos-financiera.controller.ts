@@ -1,30 +1,36 @@
+import {authenticate} from '@loopback/authentication';
 import {
   Count,
   CountSchema,
   Filter,
   FilterExcludingWhere,
   repository,
-  Where,
+  Where
 } from '@loopback/repository';
 import {
-  post,
-  param,
-  get,
-  getModelSchemaRef,
-  patch,
+  del, get,
+  getModelSchemaRef, param,
+
+
+  patch, post,
+
+
+
+
   put,
-  del,
+
   requestBody,
-  response,
+  response
 } from '@loopback/rest';
 import {InfosFinanciera} from '../models';
 import {InfosFinancieraRepository} from '../repositories';
 
+@authenticate('vendedor')
 export class InfosFinancieraController {
   constructor(
     @repository(InfosFinancieraRepository)
-    public infosFinancieraRepository : InfosFinancieraRepository,
-  ) {}
+    public infosFinancieraRepository: InfosFinancieraRepository,
+  ) { }
 
   @post('/infos-financieras')
   @response(200, {
@@ -58,6 +64,7 @@ export class InfosFinancieraController {
     return this.infosFinancieraRepository.count(where);
   }
 
+  @authenticate.skip()
   @get('/infos-financieras')
   @response(200, {
     description: 'Array of InfosFinanciera model instances',
@@ -95,6 +102,7 @@ export class InfosFinancieraController {
     return this.infosFinancieraRepository.updateAll(infosFinanciera, where);
   }
 
+  @authenticate.skip()
   @get('/infos-financieras/{id}')
   @response(200, {
     description: 'InfosFinanciera model instance',
