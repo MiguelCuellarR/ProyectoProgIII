@@ -9,7 +9,7 @@ import {
 } from '@loopback/repository';
 import {
   del, get,
-  getModelSchemaRef, param,
+  getModelSchemaRef, HttpErrors, param,
 
 
   patch, post,
@@ -23,9 +23,9 @@ import {
   response
 } from '@loopback/rest';
 import {keys as llaves} from '../config/keys';
-import {Usuarios} from '../models';
+import {Credenciales, Usuarios} from '../models';
 import {UsuariosRepository} from '../repositories';
-import {FuncionesGeneralesService, NotificacionesService} from '../services';
+import {FuncionesGeneralesService, NotificacionesService, SesionService} from '../services';
 
 export class UsuarioController {
   constructor(
@@ -34,7 +34,10 @@ export class UsuarioController {
     @service(FuncionesGeneralesService)
     public servicioFunciones: FuncionesGeneralesService,
     @service(NotificacionesService)
-    public servicionNotificaciones: NotificacionesService
+    public servicionNotificaciones: NotificacionesService,
+    @service(SesionService)
+    public servicioSesion: SesionService
+
   ) { }
 
   @post('/usuarios')
@@ -66,7 +69,7 @@ export class UsuarioController {
     if (usuarioCreado) {
       let contenido = `Hola buen dìa<br/> usted se ha reportado en nuestra plataforma, sus npmnciales, son: <br/>
       <ul>
-      <li>Usuario: ${usuarioCreado.nombres}<li/>
+      <li>Usuario: ${usuarioCreado.correo_electronico}<li/>
       <li>Contraseña: ${claveAleatoria}<li/>
       <ul/>
       Gracias por Confiar en nuestra plataforma.
@@ -79,6 +82,41 @@ export class UsuarioController {
 
 
   }
+
+
+
+
+
+  @post('/identificar-usuario')
+  async validar(
+    @requestBody(
+      {
+        content: {
+          'application/json': {
+            schema: getModelSchemaRef(Credenciales)
+          }
+        }
+      }
+    )
+    credenciales: Credenciales
+  ): Promise<object> {
+    let usuario = await this.usuariosRepository.findOne({where: {correo_electronico: credenciales.nombre_usuario, contrasena: credenciales.clave}});
+    if (usuario) {
+      let token = this.servicioSesion.GenerarToken(usuario)
+      return {
+        user: {
+          username: usuario.correo_electronico,
+          role: usuario.rolUsuarioId
+        },
+        tk: token
+      };
+    } else {
+      throw new HttpErrors[401]("Las credenciales no son correctas");
+    }
+  }
+
+
+
 
   @get('/usuarios/count')
   @response(200, {
