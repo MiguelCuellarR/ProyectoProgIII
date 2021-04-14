@@ -49,11 +49,13 @@
     "!*/__tests__"
   ],
   "dependencies": {
+    "@loopback/authentication": "^7.2.0",
     "@loopback/boot": "^3.3.0",
     "@loopback/core": "^2.15.0",
     "@loopback/repository": "^3.5.0",
     "@loopback/rest": "^9.2.0",
     "@loopback/rest-explorer": "^3.2.0",
+    "@loopback/security": "^0.4.1",
     "@loopback/service-proxy": "^3.1.0",
     "@sendgrid/mail": "^7.4.2",
     "crypto-js": "^4.0.0",
@@ -61,6 +63,7 @@
     "jsonwebtoken": "^8.5.1",
     "loopback-connector-mongodb": "^5.5.0",
     "multer": "^1.4.2",
+    "parse-bearer-token": "^1.0.1",
     "tslib": "^2.0.0"
   },
   "devDependencies": {

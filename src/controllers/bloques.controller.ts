@@ -1,30 +1,36 @@
+import {authenticate} from '@loopback/authentication';
 import {
   Count,
   CountSchema,
   Filter,
   FilterExcludingWhere,
   repository,
-  Where,
+  Where
 } from '@loopback/repository';
 import {
-  post,
-  param,
-  get,
-  getModelSchemaRef,
-  patch,
+  del, get,
+  getModelSchemaRef, param,
+
+
+  patch, post,
+
+
+
+
   put,
-  del,
+
   requestBody,
-  response,
+  response
 } from '@loopback/rest';
 import {Bloques} from '../models';
 import {BloquesRepository} from '../repositories';
 
+@authenticate('administrador')
 export class BloquesController {
   constructor(
     @repository(BloquesRepository)
-    public bloquesRepository : BloquesRepository,
-  ) {}
+    public bloquesRepository: BloquesRepository,
+  ) { }
 
   @post('/bloques')
   @response(200, {
@@ -58,6 +64,7 @@ export class BloquesController {
     return this.bloquesRepository.count(where);
   }
 
+  @authenticate.skip()
   @get('/bloques')
   @response(200, {
     description: 'Array of Bloques model instances',
@@ -95,6 +102,7 @@ export class BloquesController {
     return this.bloquesRepository.updateAll(bloques, where);
   }
 
+  @authenticate.skip()
   @get('/bloques/{id}')
   @response(200, {
     description: 'Bloques model instance',

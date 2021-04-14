@@ -1,30 +1,36 @@
+import {authenticate} from '@loopback/authentication';
 import {
   Count,
   CountSchema,
   Filter,
   FilterExcludingWhere,
   repository,
-  Where,
+  Where
 } from '@loopback/repository';
 import {
-  post,
-  param,
-  get,
-  getModelSchemaRef,
-  patch,
+  del, get,
+  getModelSchemaRef, param,
+
+
+  patch, post,
+
+
+
+
   put,
-  del,
+
   requestBody,
-  response,
+  response
 } from '@loopback/rest';
 import {Ciudades} from '../models';
 import {CiudadesRepository} from '../repositories';
 
+@authenticate('administrador')
 export class CiudadesController {
   constructor(
     @repository(CiudadesRepository)
-    public ciudadesRepository : CiudadesRepository,
-  ) {}
+    public ciudadesRepository: CiudadesRepository,
+  ) { }
 
   @post('/ciudades')
   @response(200, {
@@ -58,6 +64,7 @@ export class CiudadesController {
     return this.ciudadesRepository.count(where);
   }
 
+  @authenticate.skip()
   @get('/ciudades')
   @response(200, {
     description: 'Array of Ciudades model instances',
@@ -95,6 +102,7 @@ export class CiudadesController {
     return this.ciudadesRepository.updateAll(ciudades, where);
   }
 
+  @authenticate.skip()
   @get('/ciudades/{id}')
   @response(200, {
     description: 'Ciudades model instance',

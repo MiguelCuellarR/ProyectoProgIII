@@ -22,4 +22,13 @@ export class SesionService {
     return tk;
   }
 
+  VerificarTokenJWT(token: string) {
+    try {
+      const decoded = jwt.verify(token, llaves.claveSecretaJWT);
+      return decoded;
+    } catch {
+      return null;
+    }
+  }
+
 }
