@@ -33,3 +33,5 @@ export * from './pago.controller';
 export * from './proyectos.controller';
 export * from './bloques.controller';
 export * from './inmuebles.controller';
+export * from './cargar-archivo.controller';
+export * from './descarga-archivos.controller';
