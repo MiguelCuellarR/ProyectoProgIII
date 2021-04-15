@@ -23,7 +23,7 @@ import {
   response
 } from '@loopback/rest';
 import {keys as llaves} from '../config/keys';
-import {Credenciales, Usuarios} from '../models';
+import {Credenciales, ResetearClave, Usuarios} from '../models';
 import {UsuariosRepository} from '../repositories';
 import {FuncionesGeneralesService, NotificacionesService, SesionService} from '../services';
 
@@ -34,7 +34,7 @@ export class UsuarioController {
     @service(FuncionesGeneralesService)
     public servicioFunciones: FuncionesGeneralesService,
     @service(NotificacionesService)
-    public servicionNotificaciones: NotificacionesService,
+    public servicioNotificaciones: NotificacionesService,
     @service(SesionService)
     public servicioSesion: SesionService
 
@@ -74,11 +74,47 @@ export class UsuarioController {
       <ul/>
       Gracias por Confiar en nuestra plataforma.
       `
-      this.servicionNotificaciones.EnviarCorreoElectronico(usuarioCreado.correo_electronico, llaves.asuntoNuevoUsuario, contenido);
+      this.servicioNotificaciones.EnviarCorreoElectronico(usuarioCreado.correo_electronico, llaves.asuntoNuevoUsuario, contenido);
     }
     return usuarioCreado;
   }
 
+
+  @post('/reset-password')
+  @response(200, {
+    content: {'application/json': {schema: getModelSchemaRef(ResetearClave)}},
+  })
+  async resetPassword(
+    @requestBody({
+      content: {
+        'application/json': {
+          schema: getModelSchemaRef(ResetearClave),
+        },
+      },
+    })
+    resetearClave: ResetearClave,
+  ): Promise<Object> {
+
+    let usuario = await this.usuariosRepository.findOne({where: {correo_electronico: resetearClave.correo}})
+    if (!usuario) {
+      throw new HttpErrors[401]("Este usuario no existe");
+    }
+    let claveAleatoria = this.servicioFunciones.GenerarClaveAleatoria();
+    console.log(claveAleatoria);
+
+    let claveCifrada = this.servicioFunciones.CifrarTexto(claveAleatoria);
+    console.log(claveCifrada);
+
+    usuario.contrasena = claveCifrada;
+    await this.usuariosRepository.update(usuario);
+    let contenido = `Hola, sus datos son: Usuario: ${usuario.correo_electronico} y Contraseña: ${claveAleatoria}.
+      `;
+
+    this.servicioNotificaciones.EnviarNotificacionPorSMS(usuario.telefono_celular, contenido);
+    return {
+      envio: "OK"
+    };
+  }
 
 
 

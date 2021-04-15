@@ -1,6 +1,7 @@
 import { /* inject, */ BindingScope, injectable} from '@loopback/core';
 import {keys as llaves} from '../config/keys';
 const sgMail = require('@sendgrid/mail');
+var twilio = require('twilio');
 
 
 
@@ -31,7 +32,25 @@ export class NotificacionesService {
         console.error(error)
       })
   }
+  /**
+  * Enviar mensaje de texto al celular del usuario
+  */
+  EnviarNotificacionPorSMS(telefono: string, contenido: string) {
+    var accountSid = process.env.TWILIO_SID; // Your Account SID from www.twilio.com/console
+    var authToken = process.env.TWILIO_TK;   // Your Auth Token from www.twilio.com/console
+
+    var client = new twilio(accountSid, authToken);
+
+    client.messages.create({
+      body: contenido,
+      to: telefono,
+      from: llaves.twilioPhone
+    })
+      .then((message: any) => console.log(message.sid));
+  }
 
 }
+
+
 
 

@@ -12,3 +12,4 @@ export * from './solicitudes-estudio.model';
 export * from './usuarios.model';
 
 export * from './credenciales.model';
+export * from './resetear-clave.model';

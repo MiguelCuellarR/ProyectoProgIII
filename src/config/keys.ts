@@ -13,4 +13,5 @@ export namespace keys {
   export const extensionesPermitidasDOC: string[] = ['.DOCX', '.PDF', '.DOC', '.XLSX'];
   export const tamMaxImagenCliente = 1024 * 1024;
   export const tamMaxImagenProyecto = 1024 * 1024;
+  export const twilioPhone = '+12568031577';
 }
