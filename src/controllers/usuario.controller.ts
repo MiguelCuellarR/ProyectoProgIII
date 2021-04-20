@@ -1,3 +1,4 @@
+import {authenticate} from '@loopback/authentication';
 import {service} from '@loopback/core';
 import {
   Count,
@@ -10,15 +11,8 @@ import {
 import {
   del, get,
   getModelSchemaRef, HttpErrors, param,
-
-
   patch, post,
-
-
-
-
   put,
-
   requestBody,
   response
 } from '@loopback/rest';
@@ -27,6 +21,7 @@ import {Credenciales, ResetearClave, Usuarios} from '../models';
 import {UsuariosRepository} from '../repositories';
 import {FuncionesGeneralesService, NotificacionesService, SesionService} from '../services';
 
+@authenticate('administrador')
 export class UsuarioController {
   constructor(
     @repository(UsuariosRepository)
@@ -37,7 +32,6 @@ export class UsuarioController {
     public servicioNotificaciones: NotificacionesService,
     @service(SesionService)
     public servicioSesion: SesionService
-
   ) { }
 
   @post('/usuarios')
@@ -79,7 +73,7 @@ export class UsuarioController {
     return usuarioCreado;
   }
 
-
+  @authenticate.skip()
   @post('/reset-password')
   @response(200, {
     content: {'application/json': {schema: getModelSchemaRef(ResetearClave)}},
@@ -116,9 +110,7 @@ export class UsuarioController {
     };
   }
 
-
-
-
+  @authenticate.skip()
   @post('/identificar-usuario')
   async validar(
     @requestBody(
@@ -146,9 +138,6 @@ export class UsuarioController {
       throw new HttpErrors[401]("Las credenciales no son correctas");
     }
   }
-
-
-
 
   @get('/usuarios/count')
   @response(200, {
@@ -232,6 +221,7 @@ export class UsuarioController {
     await this.usuariosRepository.updateById(id, usuarios);
   }
 
+  @authenticate.skip()
   @put('/usuarios/{id}')
   @response(204, {
     description: 'Usuarios PUT success',
