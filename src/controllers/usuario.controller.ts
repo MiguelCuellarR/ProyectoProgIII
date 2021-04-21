@@ -18,7 +18,7 @@ import {
 } from '@loopback/rest';
 import {keys as llaves} from '../config/keys';
 import {Credenciales, ResetearClave, Usuarios} from '../models';
-import {UsuariosRepository} from '../repositories';
+import {RolesUsuarioRepository, UsuariosRepository} from '../repositories';
 import {FuncionesGeneralesService, NotificacionesService, SesionService} from '../services';
 
 @authenticate('administrador')
@@ -26,6 +26,9 @@ export class UsuarioController {
   constructor(
     @repository(UsuariosRepository)
     public usuariosRepository: UsuariosRepository,
+    @repository(RolesUsuarioRepository)
+    public rolUsuarioRepository: RolesUsuarioRepository,
+
     @service(FuncionesGeneralesService)
     public servicioFunciones: FuncionesGeneralesService,
     @service(NotificacionesService)
@@ -56,15 +59,21 @@ export class UsuarioController {
 
     let claveCifrada = this.servicioFunciones.CifrarTexto(claveAleatoria);
 
+
     usuarios.contrasena = claveCifrada;
     let usuarioCreado = await this.usuariosRepository.create(usuarios);
+    let rol = await this.rolUsuarioRepository.findById(usuarioCreado.rolUsuarioId);
 
-    //notificacion via email
+    //Buscando el rol que tiene el usuario
+
+
+    //notificacion via email, necesitamos decir que rol es
     if (usuarioCreado) {
       let contenido = `Hola buen dìa<br/> usted se ha reportado en nuestra plataforma, sus npmnciales, son: <br/>
       <ul>
-      <li>Usuario: ${usuarioCreado.correo_electronico}<li/>
-      <li>Contraseña: ${claveAleatoria}<li/>
+      <li>Usuario: ${usuarioCreado.correo_electronico}
+      <li>Contraseña: ${claveAleatoria}
+      <li>Rol: ${rol.nombre}
       <ul/>
       Gracias por Confiar en nuestra plataforma.
       `
