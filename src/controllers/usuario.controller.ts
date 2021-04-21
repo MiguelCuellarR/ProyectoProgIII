@@ -17,7 +17,7 @@ import {
   response
 } from '@loopback/rest';
 import {keys as llaves} from '../config/keys';
-import {Credenciales, ResetearClave, Usuarios} from '../models';
+import {CambiarClave, Credenciales, ResetearClave, Usuarios} from '../models';
 import {RolesUsuarioRepository, UsuariosRepository} from '../repositories';
 import {FuncionesGeneralesService, NotificacionesService, SesionService} from '../services';
 
@@ -81,6 +81,64 @@ export class UsuarioController {
     }
     return usuarioCreado;
   }
+
+  @authenticate.skip()
+  @post('/change-password')
+  @response(200, {
+    content: {'application/json': {schema: getModelSchemaRef(CambiarClave)}},
+  })
+  async cambiarClave(
+    @requestBody({
+      content: {
+        'application/json': {
+          schema: getModelSchemaRef(CambiarClave),
+        },
+      },
+    })
+    cambiarClave: CambiarClave,
+  ): Promise<Object> {
+
+    let usuario = await this.usuariosRepository.findOne({where: {correo_electronico: cambiarClave.correo}})
+    if (!usuario) {
+      throw new HttpErrors[401]("Este usuario no existe");
+    }
+    let verificado = null;
+
+    try {
+
+      if (cambiarClave.clave === usuario.contrasena) {
+        verificado = "correcto"
+        let claveCifrada = this.servicioFunciones.CifrarTexto(cambiarClave.nuevaClave);
+        console.log(claveCifrada);
+
+
+        usuario.contrasena = claveCifrada;
+        await this.usuariosRepository.update(usuario);
+        let contenido = `Hola, sus datos son: Usuario: ${usuario.correo_electronico} y Contraseña: ${cambiarClave.nuevaClave}.
+            `;
+
+        this.servicioNotificaciones.EnviarCorreoElectronico(usuario.correo_electronico, llaves.asuntocambioClave, contenido);
+
+
+      }
+      else {
+        throw new HttpErrors[401]("Las credenciales no son correctas o incompletas, verifique otra vez.");
+      }
+
+    } catch (error) {
+      throw new HttpErrors[401]("Complete el formulario.");
+    }
+
+
+
+    return {
+      procesado: verificado
+    };
+  }
+
+
+
+
 
   @authenticate.skip()
   @post('/reset-password')
