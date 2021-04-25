@@ -1,7 +1,7 @@
 export namespace keys {
   export const origenCorreoElectronico = 'jhohan.1701821033@ucaldas.edu.co';
-  export const asuntoNuevoUsuario = '[Nuevo usuario --] Mensaje de bienvenida';
-  export const asuntocambioClave = 'Cambio de clave exitoso';
+  export const asuntoNuevoUsuario = '[Constructora UdeC S.A.S] Mensaje de bienvenida';
+  export const asuntocambioClave = '[Constructora UdeC S.A.S] Cambio de contraseña exitoso';
   export const tiempoVencimientoToken = Math.floor(Date.now() / 1000) + (60 * 60);//un token de una hora de duracion
   export const claveSecretaJWT = 'jwt@proyProg3';
   export const carpetaImagenClientes = '../../archivos/clientes';

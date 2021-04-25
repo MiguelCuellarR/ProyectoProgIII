@@ -56,25 +56,24 @@ export class UsuarioController {
     usuarios: Omit<Usuarios, 'id'>,
   ): Promise<Usuarios> {
     let claveAleatoria = this.servicioFunciones.GenerarClaveAleatoria();
-
     let claveCifrada = this.servicioFunciones.CifrarTexto(claveAleatoria);
-
-
     usuarios.contrasena = claveCifrada;
+
     let usuarioCreado = await this.usuariosRepository.create(usuarios);
+
     let rol = await this.rolUsuarioRepository.findById(usuarioCreado.rolUsuarioId);
 
     //Buscando el rol que tiene el usuario
 
-
     //notificacion via email, necesitamos decir que rol es
     if (usuarioCreado) {
-      let contenido = `Hola buen dìa<br/> usted se ha reportado en nuestra plataforma, sus npmnciales, son: <br/>
+      let contenido = `Hola Buen día ${usuarioCreado.nombres}
+      <br/>Bienvenido a la plataforma de la Constructora UdeC S.A.S, sus credenciales de acceso son: <br/>
       <ul>
-      <li>Usuario: ${usuarioCreado.correo_electronico}
-      <li>Contraseña: ${claveAleatoria}
-      <li>Rol: ${rol.nombre}
-      <ul/>
+        <li>Usuario: ${usuarioCreado.correo_electronico}
+        <li>Contraseña: ${claveAleatoria}
+        <li>Rol: ${rol.nombre}
+      </ul>
       Gracias por Confiar en nuestra plataforma.
       `
       this.servicioNotificaciones.EnviarCorreoElectronico(usuarioCreado.correo_electronico, llaves.asuntoNuevoUsuario, contenido);
@@ -103,23 +102,23 @@ export class UsuarioController {
       throw new HttpErrors[401]("Este usuario no existe");
     }
     let verificado = null;
-
     try {
-
       if (cambiarClave.clave === usuario.contrasena) {
         verificado = "correcto"
         let claveCifrada = this.servicioFunciones.CifrarTexto(cambiarClave.nuevaClave);
         console.log(claveCifrada);
 
-
         usuario.contrasena = claveCifrada;
         await this.usuariosRepository.update(usuario);
-        let contenido = `Hola, sus datos son: Usuario: ${usuario.correo_electronico} y Contraseña: ${cambiarClave.nuevaClave}.
-            `;
+        let contenido = `Hola Buen dia ${usuario.nombres}, sus credenciales de acceso a la plataforma son: <br/>
+          <ul>
+            <li>Usuario:  ${usuario.correo_electronico}
+            <li>Contraseña: ${cambiarClave.nuevaClave}
+          </ul>
+          Gracias por confiar en nuestra plataforma.
+        `;
 
         this.servicioNotificaciones.EnviarCorreoElectronico(usuario.correo_electronico, llaves.asuntocambioClave, contenido);
-
-
       }
       else {
         throw new HttpErrors[401]("Las credenciales no son correctas o incompletas, verifique otra vez.");
@@ -128,17 +127,10 @@ export class UsuarioController {
     } catch (error) {
       throw new HttpErrors[401]("Complete el formulario.");
     }
-
-
-
     return {
       procesado: verificado
     };
   }
-
-
-
-
 
   @authenticate.skip()
   @post('/reset-password')
@@ -168,7 +160,7 @@ export class UsuarioController {
 
     usuario.contrasena = claveCifrada;
     await this.usuariosRepository.update(usuario);
-    let contenido = `Hola, sus datos son: Usuario: ${usuario.correo_electronico} y Contraseña: ${claveAleatoria}.
+    let contenido = `Hola Buen día, sus credenciales de acceso son: Usuario: ${usuario.correo_electronico} y Contraseña: ${claveAleatoria}.
       `;
 
     this.servicioNotificaciones.EnviarNotificacionPorSMS(usuario.telefono_celular, contenido);
