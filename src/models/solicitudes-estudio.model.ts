@@ -35,6 +35,7 @@ import {Usuarios} from './usuarios.model';
     },
   },
 })
+
 export class SolicitudesEstudio extends Entity {
   @property({
     type: 'string',
@@ -50,10 +51,10 @@ export class SolicitudesEstudio extends Entity {
   fecha: string;
 
   @property({
-    type: 'string',
+    type: 'number',
     required: true,
   })
-  oferta_economica: string;
+  oferta_economica: number;
 
   @hasMany(() => Pago, {keyTo: 'solicitudEstudioId'})
   solicitudEstudio_pagos: Pago[];

@@ -15,4 +15,5 @@ export namespace keys {
   export const tamMaxImagenCliente = 1024 * 1024;
   export const tamMaxImagenProyecto = 1024 * 1024;
   export const twilioPhone = '+15704059449';
+  export const EstadoDefault = '6061f270e5bcc3f6cbc5b19e';
 }

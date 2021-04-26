@@ -35,3 +35,4 @@ export * from './bloques.controller';
 export * from './inmuebles.controller';
 export * from './cargar-archivo.controller';
 export * from './descarga-archivos.controller';
+export * from './solicitud-estudio.controller';
