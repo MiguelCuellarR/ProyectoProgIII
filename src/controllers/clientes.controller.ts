@@ -9,7 +9,7 @@ import {
 } from '@loopback/repository';
 import {
   del, get,
-  getModelSchemaRef, param,
+  getModelSchemaRef, HttpErrors, param,
 
 
   patch, post,
@@ -23,13 +23,15 @@ import {
   response
 } from '@loopback/rest';
 import {Clientes} from '../models';
-import {ClientesRepository} from '../repositories';
+import {CiudadesRepository, ClientesRepository} from '../repositories';
 
 @authenticate('vendedor')
 export class ClientesController {
   constructor(
     @repository(ClientesRepository)
     public clientesRepository: ClientesRepository,
+    @repository(CiudadesRepository)
+    public ciudadesRepository: CiudadesRepository,
   ) { }
 
   @post('/clientes')
@@ -50,7 +52,15 @@ export class ClientesController {
     })
     clientes: Omit<Clientes, 'id'>,
   ): Promise<Clientes> {
-    return this.clientesRepository.create(clientes);
+    let clienteCreado = await this.clientesRepository.create(clientes);
+    if (clienteCreado){
+      let ciudad = await this.ciudadesRepository.findOne({where: {id: clienteCreado.ciudadId}});
+      if (!ciudad){
+        this.clientesRepository.delete(clienteCreado);
+        throw new HttpErrors[401]("Este ciudad no existe");
+      }
+    }
+    return clienteCreado;
   }
 
   @get('/clientes/count')

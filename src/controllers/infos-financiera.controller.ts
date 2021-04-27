@@ -9,27 +9,22 @@ import {
 } from '@loopback/repository';
 import {
   del, get,
-  getModelSchemaRef, param,
-
-
+  getModelSchemaRef, HttpErrors, param,
   patch, post,
-
-
-
-
   put,
-
   requestBody,
   response
 } from '@loopback/rest';
 import {InfosFinanciera} from '../models';
-import {InfosFinancieraRepository} from '../repositories';
+import {ClientesRepository, InfosFinancieraRepository} from '../repositories';
 
 @authenticate('vendedor')
 export class InfosFinancieraController {
   constructor(
     @repository(InfosFinancieraRepository)
     public infosFinancieraRepository: InfosFinancieraRepository,
+    @repository(ClientesRepository)
+    public clientesRepository: ClientesRepository,
   ) { }
 
   @post('/infos-financieras')
@@ -50,7 +45,15 @@ export class InfosFinancieraController {
     })
     infosFinanciera: Omit<InfosFinanciera, 'id'>,
   ): Promise<InfosFinanciera> {
-    return this.infosFinancieraRepository.create(infosFinanciera);
+    let infoFinancieraCreada = await this.infosFinancieraRepository.create(infosFinanciera);
+    if (infoFinancieraCreada){
+      let cliente = await this.clientesRepository.findOne({where: {id: infoFinancieraCreada.clienteId}})
+      if (!cliente){
+        this.infosFinancieraRepository.delete(infoFinancieraCreada);
+        throw new HttpErrors[401]("Este cliente no existe");
+      }
+    }
+    return infoFinancieraCreada;
   }
 
   @get('/infos-financieras/count')

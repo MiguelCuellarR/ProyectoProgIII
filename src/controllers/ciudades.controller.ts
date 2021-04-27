@@ -9,7 +9,7 @@ import {
 } from '@loopback/repository';
 import {
   del, get,
-  getModelSchemaRef, param,
+  getModelSchemaRef, HttpErrors, param,
 
 
   patch, post,
@@ -23,13 +23,15 @@ import {
   response
 } from '@loopback/rest';
 import {Ciudades} from '../models';
-import {CiudadesRepository} from '../repositories';
+import {CiudadesRepository, PaisesRepository} from '../repositories';
 
-@authenticate('administrador')
+authenticate('administrador')
 export class CiudadesController {
   constructor(
     @repository(CiudadesRepository)
     public ciudadesRepository: CiudadesRepository,
+    @repository(PaisesRepository)
+    public paisesRepository: PaisesRepository,
   ) { }
 
   @post('/ciudades')
@@ -50,7 +52,20 @@ export class CiudadesController {
     })
     ciudades: Omit<Ciudades, 'id'>,
   ): Promise<Ciudades> {
-    return this.ciudadesRepository.create(ciudades);
+    let ciudadCreada = await this.ciudadesRepository.create(ciudades);
+
+    let pais = await this.paisesRepository.findOne({where: {id: ciudadCreada.paisId}});
+
+    if (ciudadCreada){
+      if (pais){
+        ciudadCreada.paisId = pais.nombre;
+        await this.ciudadesRepository.update(ciudadCreada);
+      } else {
+        this.ciudadesRepository.delete(ciudadCreada);
+        throw new HttpErrors[401]("Este pais no existe");
+      }
+    }
+    return ciudadCreada;
   }
 
   @get('/ciudades/count')

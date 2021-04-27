@@ -9,7 +9,7 @@ import {
 } from '@loopback/repository';
 import {
   del, get,
-  getModelSchemaRef, param,
+  getModelSchemaRef, HttpErrors, param,
 
 
   patch, post,
@@ -22,14 +22,18 @@ import {
   requestBody,
   response
 } from '@loopback/rest';
-import {Pago} from '../models';
-import {PagoRepository} from '../repositories';
+import {Inmuebles, Pago} from '../models';
+import {InmueblesRepository, PagoRepository, SolicitudesEstudioRepository} from '../repositories';
 
 @authenticate('vendedor')
 export class PagoController {
   constructor(
     @repository(PagoRepository)
     public pagoRepository: PagoRepository,
+    @repository(SolicitudesEstudioRepository)
+    public solicitudesEstudioRepository: SolicitudesEstudioRepository,
+    @repository(InmueblesRepository)
+    public inmueblesRepository: InmueblesRepository
   ) { }
 
   @post('/pagos')
@@ -50,7 +54,37 @@ export class PagoController {
     })
     pago: Omit<Pago, 'id'>,
   ): Promise<Pago> {
-    return this.pagoRepository.create(pago);
+    let pagoCreado = await this.pagoRepository.create(pago);
+    if (pagoCreado) {
+      let solicitudEstudio = await this.solicitudesEstudioRepository.findOne({where: {id: pagoCreado.solicitudEstudioId}})
+      if (!solicitudEstudio) {
+        this.pagoRepository.delete(pagoCreado);
+        throw new HttpErrors[401]("Este solicitud de estudio no existe");
+
+      } else {
+        let inmueble = await this.inmueblesRepository.findOne({where: {id: solicitudEstudio.inmuebleId}})
+        if (!inmueble) {
+          this.pagoRepository.delete(pagoCreado);
+          throw new HttpErrors[401]("Este inmueble no existe");
+        } else {
+          if (inmueble.valor < pago.valor) {
+            this.pagoRepository.delete(pagoCreado);
+            throw new HttpErrors[400]("El pago no puede ser mayor al precio del inmueble");
+          }
+          /*if (solicitudEstudio.solicitudEstudio_pagos != undefined){
+            let sumatoria = 0;
+            solicitudEstudio.solicitudEstudio_pagos.forEach(element => {
+              sumatoria += element.valor;
+            });
+            if (sumatoria > inmueble.valor) {
+              this.pagoRepository.delete(pagoCreado);
+              throw new HttpErrors[400]("La sumatoria de los pagos no puede ser mayor al precio del inmueble");
+            }
+          }*/
+        }
+      }
+    }
+    return pagoCreado;
   }
 
   @get('/pagos/count')

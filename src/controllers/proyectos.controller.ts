@@ -9,27 +9,22 @@ import {
 } from '@loopback/repository';
 import {
   del, get,
-  getModelSchemaRef, param,
-
-
+  getModelSchemaRef, HttpErrors, param,
   patch, post,
-
-
-
-
   put,
-
   requestBody,
   response
 } from '@loopback/rest';
 import {Proyectos} from '../models';
-import {ProyectosRepository} from '../repositories';
+import {CiudadesRepository, ProyectosRepository} from '../repositories';
 
 @authenticate('administrador')
 export class ProyectosController {
   constructor(
     @repository(ProyectosRepository)
     public proyectosRepository: ProyectosRepository,
+    @repository(CiudadesRepository)
+    public ciudadesRepository: CiudadesRepository,
   ) { }
 
   @post('/proyectos')
@@ -50,7 +45,15 @@ export class ProyectosController {
     })
     proyectos: Omit<Proyectos, 'id'>,
   ): Promise<Proyectos> {
-    return this.proyectosRepository.create(proyectos);
+    let proyectoCreado = await this.proyectosRepository.create(proyectos);
+    if (proyectoCreado){
+      let ciudad = await this.ciudadesRepository.findOne({where: {id: proyectoCreado.ciudadId}});
+      if (!ciudad){
+        this.proyectosRepository.delete(proyectoCreado);
+        throw new HttpErrors[401]("Esta ciudad no existe");
+      }
+    }
+    return proyectoCreado;
   }
 
   @get('/proyectos/count')

@@ -9,29 +9,26 @@ import {
 } from '@loopback/repository';
 import {
   del, get,
-  getModelSchemaRef, param,
-
-
+  getModelSchemaRef, HttpErrors, param,
   patch, post,
-
-
-
-
   put,
-
   requestBody,
   response
 } from '@loopback/rest';
 import {SolicitudesEstudio} from '../models';
-import {SolicitudesEstudioRepository} from '../repositories';
-
-
+import {ClientesRepository, EstadosRepository, InmueblesRepository, SolicitudesEstudioRepository} from '../repositories';
 
 @authenticate('vendedor')
 export class SolicitudEstudioController {
   constructor(
     @repository(SolicitudesEstudioRepository)
     public solicitudesEstudioRepository: SolicitudesEstudioRepository,
+    @repository(EstadosRepository)
+    public estadoRepository: EstadosRepository,
+    @repository(ClientesRepository)
+    public clienteRepository: ClientesRepository,
+    @repository(InmueblesRepository)
+    public inmuebleRepository: InmueblesRepository
   ) { }
 
   @post('/solicitudes-estudios')
@@ -45,16 +42,33 @@ export class SolicitudEstudioController {
         'application/json': {
           schema: getModelSchemaRef(SolicitudesEstudio, {
             title: 'NewSolicitudesEstudio',
-            exclude: ['id'],
+            exclude: ['id', 'estadoId'/*, 'usuarioId'*/],
           }),
         },
       },
     })
     solicitudesEstudio: Omit<SolicitudesEstudio, 'id'>,
   ): Promise<SolicitudesEstudio> {
+    let estadoid = await this.estadoRepository.findById('6061f270e5bcc3f6cbc5b19e');
+    solicitudesEstudio.estadoId = estadoid.nombre;
 
+    let solicitudCreada = await this.solicitudesEstudioRepository.create(solicitudesEstudio);
 
-    return this.solicitudesEstudioRepository.create(solicitudesEstudio);
+    let cliente = await this.clienteRepository.findOne({where: {id: solicitudCreada.clienteId}});
+    let inmueble = await this.inmuebleRepository.findOne({where: {id: solicitudCreada.inmuebleId}})
+
+    if (solicitudCreada) {
+      if (cliente) {
+        if (!inmueble) {
+          this.solicitudesEstudioRepository.delete(solicitudCreada);
+          throw new HttpErrors[401]("Este inmueble no existe");
+        } 
+      } else {
+        this.solicitudesEstudioRepository.delete(solicitudCreada);
+        throw new HttpErrors[401]("Este cliente no existe");
+      }
+    }
+    return solicitudCreada;
   }
 
   @get('/solicitudes-estudios/count')
@@ -68,6 +82,7 @@ export class SolicitudEstudioController {
     return this.solicitudesEstudioRepository.count(where);
   }
 
+  @authenticate.skip()
   @get('/solicitudes-estudios')
   @response(200, {
     description: 'Array of SolicitudesEstudio model instances',
@@ -105,6 +120,7 @@ export class SolicitudEstudioController {
     return this.solicitudesEstudioRepository.updateAll(solicitudesEstudio, where);
   }
 
+  @authenticate.skip()
   @get('/solicitudes-estudios/{id}')
   @response(200, {
     description: 'SolicitudesEstudio model instance',

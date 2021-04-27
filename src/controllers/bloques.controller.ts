@@ -9,7 +9,7 @@ import {
 } from '@loopback/repository';
 import {
   del, get,
-  getModelSchemaRef, param,
+  getModelSchemaRef, HttpErrors, param,
 
 
   patch, post,
@@ -23,13 +23,15 @@ import {
   response
 } from '@loopback/rest';
 import {Bloques} from '../models';
-import {BloquesRepository} from '../repositories';
+import {BloquesRepository, ProyectosRepository} from '../repositories';
 
 @authenticate('administrador')
 export class BloquesController {
   constructor(
     @repository(BloquesRepository)
     public bloquesRepository: BloquesRepository,
+    @repository(ProyectosRepository)
+    public proyectosRepository: ProyectosRepository,
   ) { }
 
   @post('/bloques')
@@ -50,7 +52,15 @@ export class BloquesController {
     })
     bloques: Omit<Bloques, 'id'>,
   ): Promise<Bloques> {
-    return this.bloquesRepository.create(bloques);
+    let bloqueCreado = await this.bloquesRepository.create(bloques);
+    if (bloqueCreado){
+      let proyecto = await this.proyectosRepository.findOne({where: {id: bloqueCreado.proyectoId}})
+      if (!proyecto){
+        this.bloquesRepository.delete(bloqueCreado);
+        throw new HttpErrors[401]("Este proyecto no existe");
+      }
+    }
+    return bloqueCreado;
   }
 
   @get('/bloques/count')

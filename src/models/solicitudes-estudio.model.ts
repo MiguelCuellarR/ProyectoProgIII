@@ -45,7 +45,7 @@ export class SolicitudesEstudio extends Entity {
   id?: string;
 
   @property({
-    type: 'date',
+    type: 'string',
     required: true,
   })
   fecha: string;

@@ -18,7 +18,7 @@ import {
 } from '@loopback/rest';
 import {keys as llaves} from '../config/keys';
 import {CambiarClave, Credenciales, ResetearClave, Usuarios} from '../models';
-import {RolesUsuarioRepository, UsuariosRepository} from '../repositories';
+import {CiudadesRepository, RolesUsuarioRepository, UsuariosRepository} from '../repositories';
 import {FuncionesGeneralesService, NotificacionesService, SesionService} from '../services';
 
 @authenticate('administrador')
@@ -28,6 +28,8 @@ export class UsuarioController {
     public usuariosRepository: UsuariosRepository,
     @repository(RolesUsuarioRepository)
     public rolUsuarioRepository: RolesUsuarioRepository,
+    @repository(CiudadesRepository)
+    public ciudadRepository: CiudadesRepository,
 
     @service(FuncionesGeneralesService)
     public servicioFunciones: FuncionesGeneralesService,
@@ -60,23 +62,32 @@ export class UsuarioController {
     usuarios.contrasena = claveCifrada;
 
     let usuarioCreado = await this.usuariosRepository.create(usuarios);
-
-    let rol = await this.rolUsuarioRepository.findById(usuarioCreado.rolUsuarioId);
-
-    //Buscando el rol que tiene el usuario
-
-    //notificacion via email, necesitamos decir que rol es
     if (usuarioCreado) {
-      let contenido = `Hola Buen día ${usuarioCreado.nombres}
-      <br/>Bienvenido a la plataforma de la Constructora UdeC S.A.S, sus credenciales de acceso son: <br/>
-      <ul>
-        <li>Usuario: ${usuarioCreado.correo_electronico}
-        <li>Contraseña: ${claveAleatoria}
-        <li>Rol: ${rol.nombre}
-      </ul>
-      Gracias por Confiar en nuestra plataforma.
-      `
-      this.servicioNotificaciones.EnviarCorreoElectronico(usuarioCreado.correo_electronico, llaves.asuntoNuevoUsuario, contenido);
+      let rol = await this.rolUsuarioRepository.findOne({where: {id: usuarioCreado.rolUsuarioId}});
+      let ciudad = await this.ciudadRepository.findOne({where: {id: usuarioCreado.ciudadId}});
+
+      if (!rol) {
+        this.usuariosRepository.delete(usuarioCreado);
+        throw new HttpErrors[401]("Este rol no existe");
+      } else {
+
+        let contenido = `Hola Buen día ${usuarioCreado.nombres}
+          <br/>Bienvenido a la plataforma de la Constructora UdeC S.A.S, sus credenciales de acceso son: <br/>
+          <ul>
+            <li>Usuario: ${usuarioCreado.correo_electronico}
+            <li>Contraseña: ${claveAleatoria}
+            <li>Rol: ${rol.nombre}
+          </ul>
+          Gracias por Confiar en nuestra plataforma.
+          `;
+          this.servicioNotificaciones.EnviarCorreoElectronico(usuarioCreado.correo_electronico, llaves.asuntoNuevoUsuario, contenido);
+
+        if(!ciudad){
+          usuarioCreado.ciudadId = '';
+          this.usuariosRepository.update(usuarioCreado);
+          throw new HttpErrors[401]("Esta ciudad no existe");
+        }
+      }
     }
     return usuarioCreado;
   }

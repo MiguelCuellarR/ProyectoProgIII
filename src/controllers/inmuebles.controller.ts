@@ -9,7 +9,7 @@ import {
 } from '@loopback/repository';
 import {
   del, get,
-  getModelSchemaRef, param,
+  getModelSchemaRef, HttpErrors, param,
 
 
   patch, post,
@@ -23,13 +23,15 @@ import {
   response
 } from '@loopback/rest';
 import {Inmuebles} from '../models';
-import {InmueblesRepository} from '../repositories';
+import {BloquesRepository, InmueblesRepository} from '../repositories';
 
 @authenticate('administrador')
 export class InmueblesController {
   constructor(
     @repository(InmueblesRepository)
     public inmueblesRepository: InmueblesRepository,
+    @repository(BloquesRepository)
+    public bloquesRepository: BloquesRepository,
   ) { }
 
   @post('/inmuebles')
@@ -50,7 +52,15 @@ export class InmueblesController {
     })
     inmuebles: Omit<Inmuebles, 'id'>,
   ): Promise<Inmuebles> {
-    return this.inmueblesRepository.create(inmuebles);
+    let inmuebleCreado = await this.inmueblesRepository.create(inmuebles);
+    if (inmuebleCreado){
+      let bloque = await this.bloquesRepository.findOne({where: {id: inmuebleCreado.bloqueId}})
+      if (!bloque){
+        this.inmueblesRepository.delete(inmuebleCreado);
+        throw new HttpErrors[401]("Este inmueble no existe");
+      }
+    }
+    return inmuebleCreado;
   }
 
   @get('/inmuebles/count')
