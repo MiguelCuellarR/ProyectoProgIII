@@ -70,8 +70,11 @@ export class UsuarioController {
         this.usuariosRepository.delete(usuarioCreado);
         throw new HttpErrors[401]("Este rol no existe");
       } else {
-
-        let contenido = `Hola Buen día ${usuarioCreado.nombres}
+        if (!ciudad) {
+          this.usuariosRepository.delete(usuarioCreado);
+          throw new HttpErrors[401]("Esta ciudad no existe");
+        } else {
+          let contenido = `Hola Buen día ${usuarioCreado.nombres}
           <br/>Bienvenido a la plataforma de la Constructora UdeC S.A.S, sus credenciales de acceso son: <br/>
           <ul>
             <li>Usuario: ${usuarioCreado.correo_electronico}
@@ -81,11 +84,6 @@ export class UsuarioController {
           Gracias por Confiar en nuestra plataforma.
           `;
           this.servicioNotificaciones.EnviarCorreoElectronico(usuarioCreado.correo_electronico, llaves.asuntoNuevoUsuario, contenido);
-
-        if(!ciudad){
-          usuarioCreado.ciudadId = '';
-          this.usuariosRepository.update(usuarioCreado);
-          throw new HttpErrors[401]("Esta ciudad no existe");
         }
       }
     }

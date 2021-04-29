@@ -49,8 +49,7 @@ export class SolicitudEstudioController {
     })
     solicitudesEstudio: Omit<SolicitudesEstudio, 'id'>,
   ): Promise<SolicitudesEstudio> {
-    let estadoid = await this.estadoRepository.findById('6061f270e5bcc3f6cbc5b19e');
-    solicitudesEstudio.estadoId = estadoid.nombre;
+    await this.estadoRepository.findById('6061f270e5bcc3f6cbc5b19e');
 
     let solicitudCreada = await this.solicitudesEstudioRepository.create(solicitudesEstudio);
 
@@ -62,7 +61,7 @@ export class SolicitudEstudioController {
         if (!inmueble) {
           this.solicitudesEstudioRepository.delete(solicitudCreada);
           throw new HttpErrors[401]("Este inmueble no existe");
-        } 
+        }
       } else {
         this.solicitudesEstudioRepository.delete(solicitudCreada);
         throw new HttpErrors[401]("Este cliente no existe");

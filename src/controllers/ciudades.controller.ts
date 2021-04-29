@@ -57,13 +57,10 @@ export class CiudadesController {
     let pais = await this.paisesRepository.findOne({where: {id: ciudadCreada.paisId}});
 
     if (ciudadCreada){
-      if (pais){
-        ciudadCreada.paisId = pais.nombre;
-        await this.ciudadesRepository.update(ciudadCreada);
-      } else {
+      if (!pais){
         this.ciudadesRepository.delete(ciudadCreada);
         throw new HttpErrors[401]("Este pais no existe");
-      }
+      } 
     }
     return ciudadCreada;
   }

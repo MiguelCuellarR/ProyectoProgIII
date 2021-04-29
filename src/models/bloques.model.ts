@@ -23,10 +23,10 @@ export class Bloques extends Entity {
   id?: string;
 
   @property({
-    type: 'number',
+    type: 'string',
     required: true,
   })
-  codigo: number;
+  codigo: string;
 
   @property({
     type: 'string',
