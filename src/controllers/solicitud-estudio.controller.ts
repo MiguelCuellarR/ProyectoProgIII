@@ -202,7 +202,7 @@ export class SolicitudEstudioController {
             Gracias por confiar en nosotros.
             `;
               let contenidoMovil = `Buen dia ${cliente.nombres}.
-            La solicitud de estudio ${id} que realizo ${solicitudesEstudio.fecha} por el inmueble ${inmueble.codigo}
+            La solicitud de estudio que realizo ${solicitudesEstudio.fecha} por el inmueble ${inmueble.codigo}
             con una oferta de ${solicitudesEstudio.oferta_economica} ha sido ${estado.nombre}.
             Gracias por confiar en nosotros.
             `;
