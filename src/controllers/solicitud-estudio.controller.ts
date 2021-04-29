@@ -1,4 +1,5 @@
 import {authenticate} from '@loopback/authentication';
+import {service} from '@loopback/core';
 import {
   Count,
   CountSchema,
@@ -15,8 +16,10 @@ import {
   requestBody,
   response
 } from '@loopback/rest';
+import {keys as llaves} from '../config/keys';
 import {SolicitudesEstudio} from '../models';
 import {ClientesRepository, EstadosRepository, InmueblesRepository, SolicitudesEstudioRepository} from '../repositories';
+import {NotificacionesService} from '../services';
 
 @authenticate('vendedor')
 export class SolicitudEstudioController {
@@ -28,7 +31,9 @@ export class SolicitudEstudioController {
     @repository(ClientesRepository)
     public clienteRepository: ClientesRepository,
     @repository(InmueblesRepository)
-    public inmuebleRepository: InmueblesRepository
+    public inmuebleRepository: InmueblesRepository,
+    @service(NotificacionesService)
+    public servicioNotificaciones: NotificacionesService,
   ) { }
 
   @post('/solicitudes-estudios')
@@ -162,7 +167,52 @@ export class SolicitudEstudioController {
     @param.path.string('id') id: string,
     @requestBody() solicitudesEstudio: SolicitudesEstudio,
   ): Promise<void> {
-    await this.solicitudesEstudioRepository.replaceById(id, solicitudesEstudio);
+    let solicitudOriginal = await this.solicitudesEstudioRepository.findOne({where: {id: id}})
+    if (solicitudOriginal) {
+      let cliente = await this.clienteRepository.findOne({where: {id: solicitudesEstudio.clienteId}})
+      let estado = await this.estadoRepository.findOne({where: {id: solicitudesEstudio.estadoId}})
+      let inmueble = await this.inmuebleRepository.findOne({where: {id: solicitudesEstudio.inmuebleId}})
+
+      let solicitud = {
+        fecha: solicitudOriginal?.fecha,
+        oferta_economica: solicitudOriginal?.oferta_economica,
+        inmuebleId: solicitudOriginal?.inmuebleId,
+        clienteId: solicitudOriginal?.clienteId,
+        usuarioId: solicitudOriginal?.usuarioId,
+        estadoId: solicitudOriginal?.estadoId
+      }
+      if (!cliente) {
+        this.solicitudesEstudioRepository.replaceById(id, solicitud);
+        throw new HttpErrors[401]("Esta solicitud de estudio no existe");
+      } else {
+        if (!estado) {
+          this.solicitudesEstudioRepository.replaceById(id, solicitud);
+          throw new HttpErrors[401]("Este estado no existe");
+        } else {
+          if (!inmueble) {
+            this.solicitudesEstudioRepository.replaceById(id, solicitud);
+            throw new HttpErrors[401]("Este inmueble no existe");
+          } else {
+            if (estado.id != solicitudOriginal.estadoId) {
+
+              await this.solicitudesEstudioRepository.replaceById(id, solicitudesEstudio);
+              let contenidoCorreo = `Buen dia ${cliente.nombres} <br/>
+            La solicitud de estudio que realizo ${solicitudesEstudio.fecha} por el inmueble ${inmueble.codigo}
+            con una oferta de ${solicitudesEstudio.oferta_economica} ha sido ${estado.nombre}.<br/>
+            Gracias por confiar en nosotros.
+            `;
+              let contenidoMovil = `Buen dia ${cliente.nombres}.
+            La solicitud de estudio ${id} que realizo ${solicitudesEstudio.fecha} por el inmueble ${inmueble.codigo}
+            con una oferta de ${solicitudesEstudio.oferta_economica} ha sido ${estado.nombre}.
+            Gracias por confiar en nosotros.
+            `;
+            this.servicioNotificaciones.EnviarCorreoElectronico(cliente.correo_electronico, llaves.asuntocambioEstado, contenidoCorreo);
+            this.servicioNotificaciones.EnviarNotificacionPorSMS(cliente.num_celular, contenidoMovil);
+            }
+          }
+        }
+      }
+    }
   }
 
   @del('/solicitudes-estudios/{id}')
