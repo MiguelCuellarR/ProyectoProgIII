@@ -14,17 +14,34 @@ import {
   patch,
   post,
   requestBody,
+  response,
 } from '@loopback/rest';
-import {
-  RolesUsuario,
-  Usuarios,
-} from '../models';
+import {RolesUsuario, Usuarios} from '../models';
 import {RolesUsuarioRepository} from '../repositories';
 
 export class RolesUsuarioUsuariosController {
   constructor(
-    @repository(RolesUsuarioRepository) protected rolesUsuarioRepository: RolesUsuarioRepository,
-  ) { }
+    @repository(RolesUsuarioRepository)
+    protected rolesUsuarioRepository: RolesUsuarioRepository,
+  ) {}
+
+  @get('/roles-usuarios')
+  @response(200, {
+    description: 'Array of Roles model instances',
+    content: {
+      'application/json': {
+        schema: {
+          type: 'array',
+          items: getModelSchemaRef(RolesUsuario, {includeRelations: true}),
+        },
+      },
+    },
+  })
+  async find(
+    @param.filter(RolesUsuario) filter?: Filter<RolesUsuario>,
+  ): Promise<RolesUsuario[]> {
+    return this.rolesUsuarioRepository.find(filter);
+  }
 
   @get('/roles-usuarios/{id}/usuarios', {
     responses: {
@@ -38,7 +55,7 @@ export class RolesUsuarioUsuariosController {
       },
     },
   })
-  async find(
+  async findById(
     @param.path.string('id') id: string,
     @param.query.object('filter') filter?: Filter<Usuarios>,
   ): Promise<Usuarios[]> {
@@ -61,11 +78,12 @@ export class RolesUsuarioUsuariosController {
           schema: getModelSchemaRef(Usuarios, {
             title: 'NewUsuariosInRolesUsuario',
             exclude: ['id'],
-            optional: ['rolUsuarioId']
+            optional: ['rolUsuarioId'],
           }),
         },
       },
-    }) usuarios: Omit<Usuarios, 'id'>,
+    })
+    usuarios: Omit<Usuarios, 'id'>,
   ): Promise<Usuarios> {
     return this.rolesUsuarioRepository.rolUsuario_usuarios(id).create(usuarios);
   }
@@ -88,9 +106,12 @@ export class RolesUsuarioUsuariosController {
       },
     })
     usuarios: Partial<Usuarios>,
-    @param.query.object('where', getWhereSchemaFor(Usuarios)) where?: Where<Usuarios>,
+    @param.query.object('where', getWhereSchemaFor(Usuarios))
+    where?: Where<Usuarios>,
   ): Promise<Count> {
-    return this.rolesUsuarioRepository.rolUsuario_usuarios(id).patch(usuarios, where);
+    return this.rolesUsuarioRepository
+      .rolUsuario_usuarios(id)
+      .patch(usuarios, where);
   }
 
   @del('/roles-usuarios/{id}/usuarios', {
@@ -103,7 +124,8 @@ export class RolesUsuarioUsuariosController {
   })
   async delete(
     @param.path.string('id') id: string,
-    @param.query.object('where', getWhereSchemaFor(Usuarios)) where?: Where<Usuarios>,
+    @param.query.object('where', getWhereSchemaFor(Usuarios))
+    where?: Where<Usuarios>,
   ): Promise<Count> {
     return this.rolesUsuarioRepository.rolUsuario_usuarios(id).delete(where);
   }
