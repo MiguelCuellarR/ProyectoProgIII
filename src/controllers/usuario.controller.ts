@@ -6,7 +6,7 @@ import {
   Filter,
   FilterExcludingWhere,
   repository,
-  Where,
+  Where
 } from '@loopback/repository';
 import {
   del,
@@ -18,19 +18,19 @@ import {
   post,
   put,
   requestBody,
-  response,
+  response
 } from '@loopback/rest';
 import {keys as llaves} from '../config/keys';
 import {CambiarClave, Credenciales, ResetearClave, Usuarios} from '../models';
 import {
   CiudadesRepository,
   RolesUsuarioRepository,
-  UsuariosRepository,
+  UsuariosRepository
 } from '../repositories';
 import {
   FuncionesGeneralesService,
   NotificacionesService,
-  SesionService,
+  SesionService
 } from '../services';
 
 @authenticate('administrador')
@@ -49,7 +49,7 @@ export class UsuarioController {
     public servicioNotificaciones: NotificacionesService,
     @service(SesionService)
     public servicioSesion: SesionService,
-  ) {}
+  ) { }
 
   @post('/usuarios')
   @response(200, {
@@ -250,6 +250,8 @@ export class UsuarioController {
     return this.usuariosRepository.count(where);
   }
 
+
+  @authenticate.skip()
   @get('/usuarios')
   @response(200, {
     description: 'Array of Usuarios model instances',
@@ -267,6 +269,7 @@ export class UsuarioController {
   ): Promise<Usuarios[]> {
     return this.usuariosRepository.find(filter);
   }
+
 
   @patch('/usuarios')
   @response(200, {
