@@ -42,10 +42,10 @@ export class Usuarios extends Entity {
   apellidos: string;
 
   @property({
-    type: 'number',
+    type: 'string',
     required: true,
   })
-  documento: number;
+  documento: string;
 
   @property({
     type: 'string',
