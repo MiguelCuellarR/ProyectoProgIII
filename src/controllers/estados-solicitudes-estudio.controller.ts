@@ -14,6 +14,7 @@ import {
   patch,
   post,
   requestBody,
+  response,
 } from '@loopback/rest';
 import {
   Estados,
@@ -23,8 +24,27 @@ import {EstadosRepository} from '../repositories';
 
 export class EstadosSolicitudesEstudioController {
   constructor(
-    @repository(EstadosRepository) protected estadosRepository: EstadosRepository,
+    @repository(EstadosRepository)
+    protected estadosRepository: EstadosRepository,
   ) { }
+
+  @get('/estados')
+  @response(200, {
+    description: 'Array of Estados model instances',
+    content: {
+      'application/json': {
+        schema: {
+          type: 'array',
+          items: getModelSchemaRef(Estados, {includeRelations: true}),
+        },
+      },
+    },
+  })
+  async find(
+    @param.filter(Estados) filter?: Filter<Estados>,
+  ): Promise<Estados[]> {
+    return this.estadosRepository.find(filter);
+  }
 
   @get('/estados/{id}/solicitudes-estudios', {
     responses: {
@@ -38,7 +58,7 @@ export class EstadosSolicitudesEstudioController {
       },
     },
   })
-  async find(
+  async findById(
     @param.path.string('id') id: string,
     @param.query.object('filter') filter?: Filter<SolicitudesEstudio>,
   ): Promise<SolicitudesEstudio[]> {

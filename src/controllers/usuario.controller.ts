@@ -251,7 +251,7 @@ export class UsuarioController {
   }
 
 
-  @authenticate.skip()
+  //@authenticate.skip()
   @get('/usuarios')
   @response(200, {
     description: 'Array of Usuarios model instances',
@@ -290,6 +290,7 @@ export class UsuarioController {
     return this.usuariosRepository.updateAll(usuarios, where);
   }
 
+
   @get('/usuarios/{id}')
   @response(200, {
     description: 'Usuarios model instance',
@@ -325,7 +326,7 @@ export class UsuarioController {
     await this.usuariosRepository.updateById(id, usuarios);
   }
 
-  @authenticate.skip()
+  //@authenticate.skip()
   @put('/usuarios/{id}')
   @response(204, {
     description: 'Usuarios PUT success',
