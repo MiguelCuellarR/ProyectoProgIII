@@ -84,11 +84,11 @@ export class DescargaArchivosController {
       case 1:
         ruta = path.join(__dirname, llaves.carpetaImagenClientes);
         break;
-      // Todos los de tipo 1 son PROYECTOS
+      // Todos los de tipo 2 son PROYECTOS
       case 2:
         ruta = path.join(__dirname, llaves.carpetaImagenProyecto);
         break;
-      // Todos los de tipo 1 son COMPROBANTES DE PAGO
+      // Todos los de tipo 3 son COMPROBANTES DE PAGO
       case 3: ruta = path.join(__dirname, llaves.carpetaComprobantesPago);
 
     }
